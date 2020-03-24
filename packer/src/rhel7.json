@@ -1,0 +1,14 @@
+{
+  "iso_url": "http://artifactory.yoox.net/artifactory/ynap-infrastructure-packages/rhel-server-7.3-x86_64-boot.iso",
+  "iso_checksum": "35fae539051c372767621d6887db10a3",
+  "version": "7",
+  "ks_file": "ks-rhel",
+  "guestos": "rhel7-64",
+  "ifname": "ens192",
+  "build_prefix": "rhel",
+  "custom_boot_options": "",
+  "vnc_port_min": "5988",
+  "vnc_port_max": "5988",
+  "cloud_file": "vmware.cloud-init.cfg",
+  "vm_name_prefix": "vra7_templ_rhel_7{{ env `VM_NAME_SUFFIX`}}"
+}

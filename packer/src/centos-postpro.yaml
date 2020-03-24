@@ -1,0 +1,226 @@
+### WARNING. ADDING A BRAND NEW SITE? YOU NEED TO CREATE THE VM FOLDER ON THAT SITE MANUALLY.
+### OVFTOOL AND PACKER DO NOT CREATE FOLDERS. THEY ERROR SILENTLY IF THE FOLDERS DO NOT EXIST.
+### THE PATH WE USE AS OF THIS COMMIT IS: "Template/Linux/CentOS"
+### ALSO YOU CANNOT DEBUG THE POST-PROCESSOR. ALL THE OUTPUT IS SILENCED. INSTALL OVFTOOL LOCALLY
+### AND TEST IF YOU ARE HAVING DIFFICULTY.
+### USEFUL COMMAND OPTIONS: --X:logLevel=trivia --X:logToConsole --X:logTransferHeaderData
+
+target:
+ savlatest:
+   cluster: APP-CLUSTER-SAV
+   datacenter: London-DC-SAV-WK
+   datastore: DS-TEMPLATES-SAV
+   host: vcenter02.sav.nap
+   vm_network: VM Network
+   vm_name: "{{user `build_prefix`}}{{user `version`}}-template-{{user `branch_name`}}-latest"
+ 
+ savapp:
+   cluster: APP-CLUSTER-SAV
+   datacenter: London-DC-SAV-WK
+   datastore: DS-TEMPLATES-SAV
+   host: vcenter02.sav.nap
+   vm_network: VM Network
+   vm_name: "{{user `build_prefix`}}{{user `version`}}-template-{{user `branch_name`}}-app-latest"
+
+ savdb:
+   cluster: DB-CLUSTER-SAV
+   datacenter: London-DC-SAV-WK
+   datastore: DS-TEMPLATES-SAV
+   host: vcenter02.sav.nap
+   vm_network: VM Network
+   vm_name: "{{user `build_prefix`}}{{user `version`}}-template-{{user `branch_name`}}-db-latest"
+
+ savweb:
+   cluster: WEB-CLUSTER-SAV
+   datacenter: London-DC-SAV-WK
+   datastore: DS-TEMPLATES-SAV
+   host: vcenter02.sav.nap
+   vm_network: VM Network
+   vm_name: "{{user `build_prefix`}}{{user `version`}}-template-{{user `branch_name`}}-web-latest"
+
+ savmgmt:
+   cluster: MGMT-CLUSTER-SAV
+   datacenter: London-DC-SAV-MGMT
+   datastore: DS-TEMPLATES-SAV
+   host: vcenter01.sav.nap
+   vm_network: VM Network
+   vm_name: "{{user `build_prefix`}}{{user `version`}}-template-{{user `branch_name`}}-latest"
+
+ gs2mgmt:
+   cluster: Management/LON-GS2-MGMT
+   datacenter: LON-GS2
+   datastore: DS-TEMPLATES-GS2
+   host: vcsa01.gs2.nap
+   vm_network: VM Network
+   vm_name: "{{user `build_prefix`}}{{user `version`}}-template-{{user `branch_name`}}-mgmt-latest"
+
+ gs2app:   
+   cluster: Workload/LON-GS2-APP
+   datacenter: LON-GS2
+   datastore: DS-TEMPLATES-GS2
+   host: vcsa01.gs2.nap
+   vm_network: VM Network
+   vm_name: "{{user `build_prefix`}}{{user `version`}}-template-{{user `branch_name`}}-app-latest"
+
+ gs2db:  
+   cluster: Workload/LON-GS2-DB
+   datacenter: LON-GS2
+   datastore: DS-TEMPLATES-GS2
+   host: vcsa01.gs2.nap
+   vm_network: VM Network
+   vm_name: "{{user `build_prefix`}}{{user `version`}}-template-{{user `branch_name`}}-db-latest"
+
+ gs2web:  
+   cluster: Workload/LON-GS2-WEB
+   datacenter: LON-GS2
+   datastore: DS-TEMPLATES-GS2
+   host: vcsa01.gs2.nap
+   vm_network: VM Network
+   vm_name: "{{user `build_prefix`}}{{user `version`}}-template-{{user `branch_name`}}-web-latest"
+
+ gs2latest:
+   cluster: Management/LON-GS2-MGMT
+   datacenter: LON-GS2
+   datastore: DS-TEMPLATES-GS2
+   host: vcsa01.gs2.nap
+   vm_network: VM Network
+   vm_name: "{{user `build_prefix`}}{{user `version`}}-template-{{user `branch_name`}}-latest"
+
+ wtfbuild:
+   cluster: cluster-wtf-mgmt
+   datacenter: wtf
+   datastore: WFD-ECOMM-DS-01
+   host: vcsa01.wtf.nap
+   vm_network: VM Network
+   vm_name: "{{user `build_prefix`}}{{user `version`}}-template-{{user `branch_name`}}-{{user `build_version`}}.{{user `build_number`}}"
+
+ wtflatest:
+   cluster: cluster-wtf-mgmt
+   datacenter: wtf
+   datastore: WFD-ECOMM-DS-01
+   host: vcsa01.wtf.nap
+   vm_network: VM Network
+   vm_name: "{{user `build_prefix`}}{{user `version`}}-template-{{user `branch_name`}}-latest"
+
+ dc1:
+   cluster: DC1-ECOMM-CL
+   datacenter: DC1-ECOMM
+   datastore: DC1-SVE-DS01
+   host: vcsa01.dc1.nap
+   vm_network: VM Network
+   vm_name: "{{user `build_prefix`}}{{user `version`}}-template-{{user `branch_name`}}-latest"
+ 
+ dc2:
+   cluster: DC2-ECOMM-CL
+   datacenter: DC2-ECOMM
+   datastore: DC2-ECOMM-DS-001
+   host: vcsa01.dc2.nap
+   vm_network: ECOM_PROD_31
+   vm_name: "{{user `build_prefix`}}{{user `version`}}-template-{{user `branch_name`}}-latest"
+
+ dc3:
+   cluster: DC3-ECOMM-CL
+   datacenter: DC3-ECOMM
+   datastore: DC3-SVE-DS-01
+   host: vcsa01.dc3.nap
+   vm_network: VM Network
+   vm_name: "{{user `build_prefix`}}{{user `version`}}-template-{{user `branch_name`}}-latest"
+
+#  vio:
+#    cluster: SAV-DEV-CLUSTER
+#    datacenter: SAV-ECOPS-DEV
+#    datastore: SAV-DEV-DS-IMG-101
+#    host: vcsa01.dev.sav.nap
+#    vm_network: OFF-ESX-MGMT-663
+#    vm_name: "{{user `build_prefix`}}{{user `version`}}-template-{{user `branch_name`}}-latest"
+
+templates:
+  savlatest:
+    host: vcenter02.sav.nap
+    datacenter: London-DC-SAV-WK
+  
+  savapp:
+    host: vcenter02.sav.nap
+    datacenter: London-DC-SAV-WK
+
+  savdb:
+    host: vcenter02.sav.nap
+    datacenter: London-DC-SAV-WK
+
+  savweb:
+    host: vcenter02.sav.nap
+    datacenter: London-DC-SAV-WK
+  
+  savmgmt:
+    host: vcenter01.sav.nap
+    datacenter: London-DC-SAV-MGMT
+  
+  gs2mgmt:
+    host: vcsa01.gs2.nap
+    datacenter: LON-GS2
+
+  gs2app:
+    host: vcsa01.gs2.nap
+    datacenter: LON-GS2
+  
+  gs2db:
+    host: vcsa01.gs2.nap
+    datacenter: LON-GS2
+
+  gs2web:
+    host: vcsa01.gs2.nap
+    datacenter: LON-GS2
+  
+  gs2latest:
+    host: vcsa01.gs2.nap
+    datacenter: LON-GS2
+  
+  wtfbuild:
+    host: vcsa01.wtf.nap
+    datacenter: wtf
+  
+  wtflatest:
+    host: vcsa01.wtf.nap
+    datacenter: wtf
+  
+  dc1:
+    host: vcsa01.dc1.nap
+    datacenter: DC1-ECOMM
+  
+  dc2:
+    host: vcsa01.dc2.nap
+    datacenter: DC2-ECOMM
+  
+  dc3:
+    host: vcsa01.dc3.nap
+    datacenter: DC3-ECOMM
+  
+  # vio:
+  #   host: vcsa01.dev.sav.nap
+  #   datacenter: SAV-ECOPS-DEV
+
+#these are not over-rideable unfortunately. you will need to remove from here and add to the above if you want to have per definition defaults.
+#You can blame packer insisting on json.
+defaults: 
+  vm_folder: '/Template/Linux/CentOS'
+  # vm_name: "{{user `build_prefix`}}{{user `version`}}-template-{{user `branch_name`}}-{{user `build_version`}}.{{user `build_number`}}"
+  only:
+    - vmware-iso
+  username: "{{user `vcenter_user`}}"
+  password: "{{user `vcenter_pwd`}}"
+  insecure: true
+  options:
+    - '--compress=9'
+    - '--overwrite'
+    - '--exportFlags=extraconfig'
+    - '--allowExtraConfig'
+    - '--X:connectionReconnectCount=5'
+  type: vsphere
+  keep_input_artifact: true
+
+defaults_templates:
+  type: vsphere-template
+  insecure: true
+  username: "{{user `vcenter_user`}}"
+  password: "{{user `vcenter_pwd`}}"
+  folder: '/Template/Linux/CentOS'

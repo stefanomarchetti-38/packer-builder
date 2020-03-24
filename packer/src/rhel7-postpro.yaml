@@ -1,0 +1,132 @@
+### WARNING. ADDING A BRAND NEW SITE? YOU NEED TO CREATE THE VM FOLDER ON THAT SITE MANUALLY.
+### OVFTOOL AND PACKER DO NOT CREATE FOLDERS. THEY ERROR SILENTLY IF THE FOLDERS DO NOT EXIST.
+### THE PATH WE USE AS OF THIS COMMIT IS: "Templates/vRA/Pipeline_Template"
+### ALSO YOU CANNOT DEBUG THE POST-PROCESSOR. ALL THE OUTPUT IS SILENCED. INSTALL OVFTOOL LOCALLY
+### AND TEST IF YOU ARE HAVING DIFFICULTY.
+### USEFUL COMMAND OPTIONS: --X:logLevel=trivia --X:logToConsole --X:logTransferHeaderData
+
+target:
+  vc08:
+    cluster: "Cluster Local DEV"
+    datacenter: "BLQ-DEV"
+    datastore: BLQ-CC6-LOCALDEV-4T-L01
+    host: "yvc08blq.yoox.net"
+    vm_network: "VM Network"
+    vm_name: "{{user `vm_name_prefix`}}"
+
+  vc08_lcl:
+    cluster: "Cluster Local DEV"
+    datacenter: "BLQ-DEV"
+    datastore: BLQ-CC6-LOCALDEV-4T-L01
+    host: "yvc08blq.yoox.net"
+    vm_network: "VM Network"
+    vm_name: "{{user `vm_name_prefix`}}_lcl"
+  
+  vc08_dev:
+    cluster: "Cluster DEV Linux BLQ"
+    datacenter: "BLQ-DEV"
+    datastore: 3PAR_CC6_DEV_4T_LUN.17
+    host: "yvc08blq.yoox.net"
+    vm_network: "DEV-AD-ADFSPROXY-251"
+    vm_name: "{{user `vm_name_prefix`}}_dev"
+  
+  vc07:
+    cluster: "Cluster Linux Integ"
+    datacenter: DCBLQInteg  
+    datastore: BLQ-CC1-ITG-L01-8TB_ISO
+    host: yvc07blq.yoox.net
+    vm_network: dvPortGroup-INTEG-WH-SERVERS-3PL-73
+    vm_name: "{{user `vm_name_prefix`}}"
+
+  vc07_itg:
+    cluster: "Cluster Linux Integ"
+    datacenter: DCBLQInteg  
+    datastore: BLQ-CC1-ITG-L01-8TB_ISO
+    host: yvc07blq.yoox.net
+    vm_network: dvPortGroup-INTEG-WH-SERVERS-3PL-73
+    vm_name: "{{user `vm_name_prefix`}}_itg"
+  
+  vc07_pef:
+    cluster: "Cluster Linux Perf"
+    datacenter: DCBLQInteg  
+    datastore: BLQ-CC1-PRF-L06-8TB
+    host: yvc07blq.yoox.net
+    vm_network: dvPortGroup-INTEG-WH-SERVERS-3PL-73
+    vm_name: "{{user `vm_name_prefix`}}_pef"
+
+  drb01:
+    cluster: "Cluster_Linux_DR"
+    datacenter: Datacenter_DR_BTM
+    datastore: BTM-BC1-8TB-L01
+    host: drbinfvca001btm.yoox.net
+    vm_network: "VM Network"
+    vm_name: "{{user `vm_name_prefix`}}"
+
+  vc01:
+    cluster: "Cluster Linux Imo"
+    datacenter: "Datacenter Imola"
+    datastore: IMO-A01-8TB-L02
+    host: yvc01imo.yoox.net
+    vm_network: "TN_PRD|AP_YNAP|EPG_36_SRV-36"
+    vm_name: "{{user `vm_name_prefix`}}"
+
+
+templates:
+  vc08:
+    host: yvc08blq.yoox.net
+    datacenter: BLQ-DEV
+  
+  vc08_lcl:
+    host: yvc08blq.yoox.net
+    datacenter: BLQ-DEV
+  
+  vc08_dev:
+    host: yvc08blq.yoox.net
+    datacenter: BLQ-DEV
+  
+  vc07:
+    host: yvc07blq.yoox.net
+    datacenter: DCBLQInteg
+
+  vc07_itg:
+    host: yvc07blq.yoox.net
+    datacenter: DCBLQInteg
+  
+  vc07_pef:
+    host: yvc07blq.yoox.net
+    datacenter: DCBLQInteg
+
+  drb01:
+    host: drbinfvca001btm.yoox.net
+    datacenter: Datacenter_DR_BTM
+  
+  vc01:
+    host: yvc01imo.yoox.net
+    datacenter: "Datacenter Imola"
+
+  
+#these are not over-rideable unfortunately. you will need to remove from here and add to the above if you want to have per definition defaults.
+#You can blame packer insisting on json.
+defaults:
+  vm_folder: "{{user `vcenter_folder`}}"
+  only:
+    - vmware-iso
+  username: "{{user `vcenter_user`}}"
+  password: "{{user `vcenter_pwd`}}"
+  insecure: true
+  options:
+    - '--compress=9'
+    - '--overwrite'
+    - '--exportFlags=extraconfig'
+    - '--allowExtraConfig'
+    - '--extraConfig:nvram='
+  type: vsphere
+  keep_input_artifact: false
+  overwrite: true
+
+defaults_templates:
+  type: vsphere-template
+  insecure: true
+  username: "{{user `vcenter_user`}}"
+  password: "{{user `vcenter_pwd`}}"
+  folder: "{{user `vcenter_folder`}}"

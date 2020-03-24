@@ -1,0 +1,5 @@
+declare -a vioendpoint
+# Format of variable declaration is
+# vioendpoint=("endpoint1.nap" "endpoint2.nap")
+
+vioendpoint=("ui.vio.dev.sav.nap")

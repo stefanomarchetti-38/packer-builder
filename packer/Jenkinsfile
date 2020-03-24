@@ -1,0 +1,199 @@
+#!/usr/bin/env groovy
+import org.jenkinsci.plugins.workflow.steps.FlowInterruptedException
+
+if  ("$BRANCH_NAME" == 'autobuild') {
+properties([
+  pipelineTriggers([cron('0 7 * * *')])
+])
+}
+
+/*
+Description:
+This Jenkinsfile contains two 'stage', first we build the container
+with the packer code and the second where we run the packer and push the image
+into vmware
+*/
+
+// need to ensure the docker tag used in the Makefile is lowercase
+env.DOCKER_TAG = BUILD_TAG.toLowerCase()
+env.BUILD_NUMBER = "${currentBuild.number}"
+
+def skip_deploy
+
+def run_image(var_file) {
+
+    echo "Importing external vars file"
+    load "vars.groovy"
+
+    // Retrieve credentials from Jenkins.
+
+    withEnv(['VAR_FILE='+var_file]) {
+      sh 'make run_image'
+    }
+ }
+
+
+// If skip-build pattern is in the last commit message, build is skipped.
+node ('prdciddke016imo && lin && onprem') {
+  withCredentials([
+  usernamePassword( credentialsId: 'vault_jenkins_cred_inf_image',
+    usernameVariable: 'ROOT', passwordVariable: 'IMAGE_ROOT_PWD'),
+  usernamePassword( credentialsId: 'vault_jenkins_cred_inf_packer_dom_user',
+    usernameVariable: 'VCENTER_USER', passwordVariable: 'VCENTER_PWD'),
+  usernamePassword( credentialsId: 'packer_builder_vio',
+    usernameVariable: 'VIO_USER', passwordVariable: 'VIO_PWD'),
+  usernamePassword( credentialsId: 'packer_esxi',
+    usernameVariable: 'ESXI_USER', passwordVariable: 'ESXI_PWD')
+  ]) {
+    deleteDir()
+    checkout scm
+    load "vars.groovy"
+    try {
+      ansiColor("xterm") {
+        //checkout scm
+        skip_build = sh(script: '/usr/bin/git log -1 --pretty=%B | grep -o skip-build || true', returnStdout: true).trim()
+        skip_deploy = sh(script: '/usr/bin/git log -1 --pretty=%B | grep -o skip-deploy || true', returnStdout: true).trim()
+
+        if(skip_build == 'skip-build') {
+          currentBuild.result = 'NOT_BUILT'
+          return
+        }
+        if(skip_deploy == 'skip-deploy') {
+          env.SKIP_DEPLOY = 1
+        }
+
+        stage('Build') {
+          // Checkout the branch.
+          // checkout scm
+          // Run the Makefile build steps.
+          sh 'make build_image'
+          // Clean old vm
+          withEnv(['VAR_FILE=vars.groovy']) {
+            sh './cleanvm.sh'
+          } 
+        }
+
+        stage('Push Kickstart Files') {
+          // define our artifactory server to use, note this label must be configured
+          // on the Jenkins server, check with your admins for available targets
+          def server = Artifactory.server('artifactory.yoox.net')
+
+          // create our upload-spec, and use the artifactory plugin to upload to
+          // artifactory
+          def upload_spec = """{
+            "files": [
+            {
+              "pattern": "src/files/kickstart/*",
+              "target": "ynap-infrastructure-packages/kickstart/"
+            }
+            ]
+          }"""
+
+          // publish our build info
+          def build_info = server.upload(upload_spec)
+          server.publishBuildInfo(build_info)
+        }
+
+        stage('Proceed building images?') {
+          def Rhel_7 = false
+          def CentOS6 = false
+          def CentOS7 = false
+          def VIO_Centos6 = false
+          def VIO_Centos7 = false
+          
+          // if ("docker ps | grep -c 'jenkins-inf-packer-builder'"){
+          //   currentBuild.result = 'SUCCESS'
+          //   echo "Run already in progress"
+          //   return
+          // }
+
+          try {
+            timeout(time: 60, unit: 'SECONDS') {
+              def userInput = input(id: 'chooseOptions', message: 'Select options', parameters: [                           
+                [$class: 'BooleanParameterDefinition', defaultValue: false, description: '', name: 'Centos6'],    
+                [$class: 'BooleanParameterDefinition', defaultValue: false, description: '', name: 'Centos7'],
+                [$class: 'BooleanParameterDefinition', defaultValue: false, description: '', name: 'VIO_Centos6'],    
+                [$class: 'BooleanParameterDefinition', defaultValue: false, description: '', name: 'VIO_Centos7'],
+                [$class: 'BooleanParameterDefinition', defaultValue: false, description: '', name: 'RHEL7']
+                ] )
+            
+              Rhel_7 =  userInput.RHEL7
+              CentOS6 = userInput.Centos6
+              CentOS7 = userInput.Centos7
+              VIO_Centos6 = userInput.VIO_Centos6
+              VIO_Centos7 = userInput.VIO_Centos7
+              }
+            } catch(err) { // timeout reached or input Aborted
+                def user = err.getCauses()[0].getUser()
+                if('SYSTEM' == user.toString()) { // SYSTEM means timeout
+                    echo ("Input timeout expired, default values will be used")
+                }
+              }
+            if  ("$BRANCH_NAME" == 'autobuild') {
+              VIO_Centos6 = true
+              VIO_Centos7 = true
+            }
+
+            if ("${CentOS6}" == 'true') {
+              stage('Push CentOS 6') {
+                withEnv(['VAR_FILE=vars.groovy']) {
+                  sh './cleanvm.sh'
+                } 
+                run_image("centos6.json")
+              }
+            }
+            if ("${CentOS7}" == 'true') {
+              stage('Push CentOS 7') {
+                withEnv(['VAR_FILE=vars.groovy']) {
+                  sh './cleanvm.sh'
+                } 
+                run_image("centos7.json")
+              }
+            }
+            if ("${VIO_Centos6}" == 'true') {
+              stage('Push VIO CentOS 6') {
+                withEnv(['VAR_FILE=vars.groovy']) {
+                  sh './cleanvm.sh'
+                } 
+                run_image("openstack6.json")
+              }
+            }
+            if ("${VIO_Centos7}" == 'true') {
+              stage('Push VIO CentOS 7') {
+                withEnv(['VAR_FILE=vars.groovy']) {
+                  sh './cleanvm.sh'
+                } 
+                run_image("openstack7.json")
+              }
+            }
+            if ("${Rhel_7}" == 'true') {
+              stage('Push RHEL 7') {
+                  withCredentials([ usernamePassword( credentialsId: 'vault_jenkins_cred_inf_root_blq_image', usernameVariable: 'ROOT', passwordVariable: 'IMAGE_ROOT_PWD') ]) {
+                    withEnv(['VAR_FILE=vars.groovy']) {
+                      sh './cleanvm.sh'
+                    } 
+                    run_image("rhel7.json")
+                  } 
+              }
+            }
+            if ("docker images -a | grep 'jenkins-inf-packer-builder-'") {
+              sh "docker images -a | grep 'jenkins-inf-packer-builder-' | awk '{print \$3}' | xargs docker rmi -f"
+            }
+            if  ("$BRANCH_NAME" == 'autobuild') {
+              sh './cleanupautobuild.sh'
+              slackSend color: 'good', channel: '#infra-ci', message: "Job $JOB_NAME successfully completed.\nSee $BUILD_URL"
+            }
+          }
+      }
+    } catch (err) {
+      if(err instanceof FlowInterruptedException == false) {
+        if  ("$BRANCH_NAME" == 'autobuild') {
+          slackSend color: 'danger', channel: '#infra-ci', message: "Failure detected of $JOB_NAME.\nSee $BUILD_URL"
+        }
+      }
+    ansiColor('xterm') {
+      throw (err)
+    }
+   }
+  }
+}

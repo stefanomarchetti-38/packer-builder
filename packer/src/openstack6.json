@@ -1,0 +1,13 @@
+{
+  "iso_url": "http://artifactory.yoox.net/artifactory/ynap-infrastructure-packages/CentOS-6.10-x86_64-minimal.iso",
+  "iso_checksum": "0da4a1206e7642906e33c0f155d2f835",
+  "version": "6",
+  "ks_file": "ks-centos",
+  "guestos": "centos-64",
+  "ifname": "eth0",
+  "build_prefix": "centos",
+  "custom_boot_options": "",
+  "vnc_port_min": "5988",
+  "vnc_port_max": "5988",
+  "cloud_file": "vio.cloud-init.cfg"
+}

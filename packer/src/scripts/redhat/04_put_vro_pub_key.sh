@@ -1,0 +1,8 @@
+#!/bin/sh
+
+
+mkdir -p "/root/.ssh"
+
+echo "Adding vRO public key into root authorized_keys"
+
+echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCNMr57IiVjewd6QdUoWR1E9dwk5VowOzH1uO37cC2k0Q7k0zm2NvAtDpt3ABmi8IQ35jCqGrf59jbUwUphbdJ04950z3EIQz3AdjpToS3IfqhHGmj8Rpkjga+719Ot+TCg2mPssNTEGVlP4Wob8kiJ0KKpDDxyHLDjYNOAPCK6fc25r48ov1000vpBXjy5HKljPpogfqJQH2hnHtqgHWog5LAtL/ThlugfENrT9uwc5p1/CSou4owD15BomxDfHcKhi+3NwSJgkc0SCDHA2yqVlkO3P82zc7y9ojHiJqk5ne45OxT4/nSZcDbCTNYzphC+qhXbJaeJMjeOPIyApmgb" > "/root/.ssh/authorized_keys"
